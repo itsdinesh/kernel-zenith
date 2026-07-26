@@ -195,6 +195,13 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
 	unsigned long long lid_state;
 	acpi_status status;
 
+	if (lid_init_state == ACPI_BUTTON_LID_INIT_DISABLED)
+		return -ENODEV;
+
+	if (lid_init_state == ACPI_BUTTON_LID_INIT_IGNORE ||
+	    lid_init_state == ACPI_BUTTON_LID_INIT_OPEN)
+		return 1;
+
 	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &lid_state);
 	if (ACPI_FAILURE(status))
 		return -ENODEV;
