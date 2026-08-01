@@ -32,6 +32,7 @@
 static const struct acpi_device_id fujitsu_ids[] = {
 	{ .id = "FUJ02BD" },
 	{ .id = "FUJ02BF" },
+	{ .id = "FUJ0421" },
 	{ .id = "" }
 };
 

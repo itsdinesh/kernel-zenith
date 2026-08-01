@@ -1098,6 +1098,7 @@ static struct acpi_driver acpi_fujitsu_bl_driver = {
 
 static const struct acpi_device_id fujitsu_laptop_device_ids[] = {
 	{ACPI_FUJITSU_LAPTOP_HID, 0},
+	{"FUJ0421", 0},
 	{"", 0},
 };
 
@@ -1115,6 +1116,7 @@ static struct acpi_driver acpi_fujitsu_laptop_driver = {
 static const struct acpi_device_id fujitsu_ids[] __used = {
 	{ACPI_FUJITSU_BL_HID, 0},
 	{ACPI_FUJITSU_LAPTOP_HID, 0},
+	{"FUJ0421", 0},
 	{"", 0}
 };
 MODULE_DEVICE_TABLE(acpi, fujitsu_ids);
