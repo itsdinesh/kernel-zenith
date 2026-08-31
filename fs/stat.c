@@ -24,6 +24,7 @@
 #include <asm/unistd.h>
 
 #include <trace/events/timestamp.h>
+#include <linux/hidden_paths.h>
 
 #include "internal.h"
 #include "mount.h"
@@ -348,6 +349,12 @@ static int vfs_statx(int dfd, struct filename *filename, int flags,
 	if (flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT | AT_EMPTY_PATH |
 		      AT_STATX_SYNC_TYPE))
 		return -EINVAL;
+
+	if (!IS_ERR_OR_NULL(filename)) {
+		error = bionic_hidden_path_errno(filename->name);
+		if (unlikely(error))
+			return error;
+	}
 
 retry:
 	error = filename_lookup(dfd, filename, lookup_flags, &path, NULL);

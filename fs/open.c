@@ -33,6 +33,7 @@
 #include <linux/compat.h>
 #include <linux/mnt_idmapping.h>
 #include <linux/filelock.h>
+#include <linux/hidden_paths.h>
 
 #include "internal.h"
 #include <trace/hooks/syscall_check.h>
@@ -1454,6 +1455,12 @@ static int do_sys_openat2(int dfd, const char __user *filename,
 	tmp = getname(filename);
 	if (IS_ERR(tmp))
 		return PTR_ERR(tmp);
+
+	err = bionic_hidden_path_errno(tmp->name);
+	if (unlikely(err)) {
+		putname(tmp);
+		return err;
+	}
 
 	fd = get_unused_fd_flags(how->flags);
 	if (likely(fd >= 0)) {
