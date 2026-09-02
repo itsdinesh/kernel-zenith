@@ -185,3 +185,43 @@ int bionic_hidden_path_errno(const char *name)
 
 	return 0;
 }
+
+bool bionic_filter_current(void)
+{
+	return from_kuid(&init_user_ns, current_uid()) >= FIRST_APP_UID;
+}
+
+bool bionic_hide_mount(const char *mnt_name, const char *devname)
+{
+	/* Staging bind mounts named after the local fstab. */
+	if (mnt_name && strncmp(mnt_name, "fstab.", 6) == 0)
+		return true;
+
+	/* The boot volume and staging area, not normally visible to an app. */
+	if (mnt_name && (strcmp(mnt_name, "boot") == 0 ||
+			 strcmp(mnt_name, "postinstall") == 0))
+		return true;
+
+	/* Volumes served from an image file rather than a partition. */
+	if (devname && strstr(devname, "loop"))
+		return true;
+
+	return false;
+}
+
+const char *bionic_mount_devname(const char *devname)
+{
+	if (!devname)
+		return devname;
+
+	/*
+	 * Raw host disk nodes (/dev/sda, /dev/nvme0n1, ...) do not appear on the
+	 * hardware these images emulate; present a neutral mapper name instead.
+	 */
+	if (strncmp(devname, "/dev/sd", 7) == 0 ||
+	    strncmp(devname, "/dev/nvme", 9) == 0 ||
+	    strncmp(devname, "/dev/vd", 7) == 0)
+		return "/dev/block/dm-0";
+
+	return devname;
+}

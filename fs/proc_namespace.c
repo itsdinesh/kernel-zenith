@@ -7,6 +7,7 @@
  * fs/namespace.c, thus here instead of fs/proc
  *
  */
+#include <linux/hidden_paths.h>
 #include <linux/mnt_namespace.h>
 #include <linux/nsproxy.h>
 #include <linux/security.h>
@@ -106,12 +107,18 @@ static int show_vfsmnt(struct seq_file *m, struct vfsmount *mnt)
 	struct super_block *sb = mnt_path.dentry->d_sb;
 	int err;
 
+	if (bionic_filter_current() &&
+	    bionic_hide_mount((const char *)r->mnt_mountpoint->d_name.name,
+			      r->mnt_devname))
+		return 0;
+
 	if (sb->s_op->show_devname) {
 		err = sb->s_op->show_devname(m, mnt_path.dentry);
 		if (err)
 			goto out;
 	} else {
-		mangle(m, r->mnt_devname);
+		mangle(m, bionic_filter_current() ?
+			  bionic_mount_devname(r->mnt_devname) : r->mnt_devname);
 	}
 	seq_putc(m, ' ');
 	/* mountpoints outside of chroot jail will give SEQ_SKIP on this */
@@ -139,6 +146,11 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
 	struct super_block *sb = mnt->mnt_sb;
 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
 	int err;
+
+	if (bionic_filter_current() &&
+	    bionic_hide_mount((const char *)r->mnt_mountpoint->d_name.name,
+			      r->mnt_devname))
+		return 0;
 
 	seq_printf(m, "%i %i %u:%u ", r->mnt_id, r->mnt_parent->mnt_id,
 		   MAJOR(sb->s_dev), MINOR(sb->s_dev));
@@ -177,7 +189,8 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
 		if (err)
 			goto out;
 	} else {
-		mangle(m, r->mnt_devname);
+		mangle(m, bionic_filter_current() ?
+			  bionic_mount_devname(r->mnt_devname) : r->mnt_devname);
 	}
 	seq_puts(m, sb_rdonly(sb) ? " ro" : " rw");
 	err = show_sb_opts(m, sb);
@@ -198,6 +211,11 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 	struct super_block *sb = mnt_path.dentry->d_sb;
 	int err;
 
+	if (bionic_filter_current() &&
+	    bionic_hide_mount((const char *)r->mnt_mountpoint->d_name.name,
+			      r->mnt_devname))
+		return 0;
+
 	/* device */
 	seq_puts(m, "device ");
 	if (sb->s_op->show_devname) {
@@ -205,7 +223,8 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
 		if (err)
 			goto out;
 	} else {
-		mangle(m, r->mnt_devname);
+		mangle(m, bionic_filter_current() ?
+			  bionic_mount_devname(r->mnt_devname) : r->mnt_devname);
 	}
 
 	/* mount point */

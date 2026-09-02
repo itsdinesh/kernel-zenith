@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+#include <linux/hidden_paths.h>
 #include <linux/smp.h>
 #include <linux/timex.h>
 #include <linux/string.h>
@@ -67,16 +68,27 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	int i;
 
 	cpu = c->cpu_index;
-	seq_printf(m, "processor\t: %u\n"
-		   "vendor_id\t: %s\n"
-		   "cpu family\t: %d\n"
-		   "model\t\t: %u\n"
-		   "model name\t: %s\n",
-		   cpu,
-		   c->x86_vendor_id[0] ? c->x86_vendor_id : "unknown",
-		   c->x86,
-		   c->x86_model,
-		   c->x86_model_id[0] ? c->x86_model_id : "unknown");
+
+	{
+		const char *vendor = c->x86_vendor_id[0] ? c->x86_vendor_id : "unknown";
+		const char *model_name = c->x86_model_id[0] ? c->x86_model_id : "unknown";
+
+		/*
+		 * Do not disclose the host CPU vendor/model string to application
+		 * processes; leave the numeric fields, which carry no brand.
+		 */
+		if (bionic_filter_current()) {
+			vendor = "unknown";
+			model_name = "unknown";
+		}
+
+		seq_printf(m, "processor\t: %u\n"
+			   "vendor_id\t: %s\n"
+			   "cpu family\t: %d\n"
+			   "model\t\t: %u\n"
+			   "model name\t: %s\n",
+			   cpu, vendor, c->x86, c->x86_model, model_name);
+	}
 
 	if (c->x86_stepping || c->cpuid_level >= 0)
 		seq_printf(m, "stepping\t: %d\n", c->x86_stepping);
