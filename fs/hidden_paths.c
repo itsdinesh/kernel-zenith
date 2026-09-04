@@ -123,8 +123,20 @@ static bool is_block_backing_file(const char *path)
 /* A NIC hardware address reached through the host bus topology. */
 static bool is_bus_net_address(const char *path)
 {
-	return strncmp(path, "/sys/", 5) == 0 && strstr(path, "/pci") &&
-	       strstr(path, "/net/") && ends_with(path, "/address");
+	if (strncmp(path, "/sys/", 5) != 0 || !ends_with(path, "/address"))
+		return false;
+
+	/* Direct host-bus NIC address node (reveals PCI topology). */
+	if (strstr(path, "/pci") && strstr(path, "/net/"))
+		return true;
+
+	/* The /sys/class/net/<iface>/address symlink route to the same node.
+	 * Returning ENOENT matches how scoped access already restricts the MAC
+	 * from ordinary apps, so this does not regress NetworkInterface callers. */
+	if (strncmp(path, "/sys/class/net/", 15) == 0)
+		return true;
+
+	return false;
 }
 
 /* Non-standard root entries and known elevation binaries. */

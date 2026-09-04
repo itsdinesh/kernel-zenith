@@ -32,6 +32,7 @@
 #include <linux/uaccess.h>
 #include <linux/kobject.h>
 #include <linux/ctype.h>
+#include <linux/hidden_paths.h>
 
 /* selinuxfs pseudo filesystem for exporting the security policy API.
    Based on the proc code and the fs/nfsd/nfsctl.c code. */
@@ -126,9 +127,19 @@ static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 {
 	char tmpbuf[TMPBUFLEN];
 	ssize_t length;
+	int value = enforcing_enabled();
 
-	length = scnprintf(tmpbuf, TMPBUFLEN, "%d",
-			   enforcing_enabled());
+	/*
+	 * Report "enforcing" to ordinary application processes so that a
+	 * permissive development build is not trivially detectable by reading
+	 * this node. This covers inline-syscall reads that bypass the libc-level
+	 * spoof. It does not change actual enforcement, and system UIDs still see
+	 * the real value.
+	 */
+	if (bionic_filter_current())
+		value = 1;
+
+	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", value);
 	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
 }
 
