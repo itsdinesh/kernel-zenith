@@ -63,7 +63,7 @@ const struct security_class_mapping secclass_map[] = {
 	{ "process2", { "nnp_transition", "nosuid_transition", NULL } },
 	{ "system",
 	  { "ipc_info", "syslog_read", "syslog_mod", "syslog_console",
-	    "module_request", "module_load", "firmware_load",
+	    "module_request", "module_load",
 	    "kexec_image_load", "kexec_initramfs_load", "policy_load",
 	    "x509_certificate_load", NULL } },
 	{ "capability", { COMMON_CAP_PERMS, NULL } },

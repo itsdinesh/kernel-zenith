@@ -4299,9 +4299,6 @@ static int selinux_kernel_read_file(struct file *file,
 			 "New kernel_read_file_id introduced; update SELinux!");
 
 	switch (id) {
-	case READING_FIRMWARE:
-		rc = selinux_kernel_load_from_file(file, SYSTEM__FIRMWARE_LOAD);
-		break;
 	case READING_MODULE:
 		rc = selinux_kernel_load_from_file(file, SYSTEM__MODULE_LOAD);
 		break;
@@ -4335,9 +4332,6 @@ static int selinux_kernel_load_data(enum kernel_load_data_id id, bool contents)
 			 "New kernel_load_data_id introduced; update SELinux!");
 
 	switch (id) {
-	case LOADING_FIRMWARE:
-		rc = selinux_kernel_load_from_file(NULL, SYSTEM__FIRMWARE_LOAD);
-		break;
 	case LOADING_MODULE:
 		rc = selinux_kernel_load_from_file(NULL, SYSTEM__MODULE_LOAD);
 		break;
