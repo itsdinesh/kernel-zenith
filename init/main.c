@@ -238,7 +238,8 @@ static int __init debug_kernel(char *str)
 
 static int __init quiet_kernel(char *str)
 {
-	console_loglevel = CONSOLE_LOGLEVEL_QUIET;
+	if (console_loglevel > CONSOLE_LOGLEVEL_QUIET)
+		console_loglevel = CONSOLE_LOGLEVEL_QUIET;
 	return 0;
 }
 

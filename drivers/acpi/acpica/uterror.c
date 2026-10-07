@@ -181,10 +181,12 @@ acpi_ut_prefixed_namespace_error(const char *module_name,
 	 */
 	switch (lookup_status) {
 	case AE_ALREADY_EXISTS:
-
-		acpi_os_printf(ACPI_MSG_BIOS_ERROR);
-		message = "Failure creating named object";
-		break;
+		/*
+		 * Many OEM BIOS tables (DSDT + SSDTs) define duplicate objects
+		 * (e.g. _HRV, _NNV). ACPICA ignores the duplicate and proceeds.
+		 * Suppress error output so it does not pollute the console or dmesg.
+		 */
+		return;
 
 	case AE_NOT_FOUND:
 
